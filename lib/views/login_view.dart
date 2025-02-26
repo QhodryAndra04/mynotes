@@ -40,47 +40,60 @@ class _LoginViewState extends State<LoginView> {
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
-              return Column(
-                children: [
-                  TextField(
-                    controller: _email,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter Your Email Here',
-                    ),
+              return Scaffold(
+                  appBar: AppBar(
+                    title: const Text('Login'),
                   ),
-                  TextField(
-                    controller: _password,
-                    obscureText: true,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter Your Password Here',
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final email = _email.text;
-                      final password = _password.text;
-                      try {
-                        final userCredential = await FirebaseAuth.instance
-                            .createUserWithEmailAndPassword(
-                                email: email, password: password);
-                        print(userCredential);
-                      } on FirebaseAuthException catch (e) {
-                        if (e.code == 'user-not-found') {
-                          print('User Not Found');
-                        } else if (e.code == 'wrong-password') {
-                          print('Wrong Password');
-                        }
-                      }
-                    },
-                    child: const Text('Login'),
-                  )
-                ],
-              );
+                  body: Column(
+                    children: [
+                      TextField(
+                        controller: _email,
+                        enableSuggestions: false,
+                        autocorrect: false,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter Your Email Here',
+                        ),
+                      ),
+                      TextField(
+                        controller: _password,
+                        obscureText: true,
+                        enableSuggestions: false,
+                        autocorrect: false,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter Your Password Here',
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          final email = _email.text;
+                          final password = _password.text;
+                          try {
+                            final userCredential = await FirebaseAuth.instance
+                                .createUserWithEmailAndPassword(
+                                    email: email, password: password);
+                            print(userCredential);
+                          } on FirebaseAuthException catch (e) {
+                            if (e.code == 'user-not-found') {
+                              print('User Not Found');
+                            } else if (e.code == 'wrong-password') {
+                              print('Wrong Password');
+                            }
+                          }
+                        },
+                        child: const Text('Login'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            '/register',
+                            (route) => false,
+                          );
+                        },
+                        child: const Text('Not registered yet? Register here!'),
+                      )
+                    ],
+                  ));
             default:
               return const Text('Loading... ');
           }
