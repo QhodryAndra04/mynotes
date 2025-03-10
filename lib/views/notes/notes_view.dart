@@ -17,16 +17,28 @@ class _NotesViewState extends State<NotesView> {
 
   @override
   void initState() {
-    _notesService.close();
+    _notesService = NotesService();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _notesService.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Main UI'),
+        title: const Text('Your Notes'),
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pushNamed(newNoteRoute);
+            },
+            icon: const Icon(Icons.add),
+          ),
           PopupMenuButton<MenuAction>(
             onSelected: (value) async {
               switch (value) {
@@ -34,8 +46,10 @@ class _NotesViewState extends State<NotesView> {
                   final shouldLogout = await showLogOutDialog(context);
                   if (shouldLogout) {
                     await AuthService.firebase().logOut();
-                    Navigator.of(context)
-                        .pushNamedAndRemoveUntil(loginRoute, (_) => false);
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      loginRoute,
+                      (_) => false,
+                    );
                   }
               }
             },
@@ -43,8 +57,8 @@ class _NotesViewState extends State<NotesView> {
               return const [
                 PopupMenuItem<MenuAction>(
                   value: MenuAction.logout,
-                  child: Text('Logout'),
-                )
+                  child: Text('Log out'),
+                ),
               ];
             },
           )
@@ -59,7 +73,8 @@ class _NotesViewState extends State<NotesView> {
                 stream: _notesService.allNotes,
                 builder: (context, snapshot) {
                   switch (snapshot.connectionState) {
-                    case ConnectionState.none:
+                    case ConnectionState.waiting:
+                    case ConnectionState.active:
                       return const Text('Waiting for all notes...');
                     default:
                       return const CircularProgressIndicator();
@@ -80,7 +95,7 @@ Future<bool> showLogOutDialog(BuildContext context) {
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: const Text('Sign Out'),
+        title: const Text('Sign out'),
         content: const Text('Are you sure you want to sign out?'),
         actions: [
           TextButton(
@@ -93,7 +108,7 @@ Future<bool> showLogOutDialog(BuildContext context) {
             onPressed: () {
               Navigator.of(context).pop(true);
             },
-            child: const Text('Log Out'),
+            child: const Text('Log out'),
           ),
         ],
       );

@@ -17,9 +17,9 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   void initState() {
-    super.initState();
     _email = TextEditingController();
     _password = TextEditingController();
+    super.initState();
   }
 
   @override
@@ -43,7 +43,7 @@ class _LoginViewState extends State<LoginView> {
             autocorrect: false,
             keyboardType: TextInputType.emailAddress,
             decoration: const InputDecoration(
-              hintText: 'Enter Your Email Here',
+              hintText: 'Enter your email here',
             ),
           ),
           TextField(
@@ -52,7 +52,7 @@ class _LoginViewState extends State<LoginView> {
             enableSuggestions: false,
             autocorrect: false,
             decoration: const InputDecoration(
-              hintText: 'Enter Your Password Here',
+              hintText: 'Enter your password here',
             ),
           ),
           TextButton(
@@ -66,22 +66,33 @@ class _LoginViewState extends State<LoginView> {
                 );
                 final user = AuthService.firebase().currentUser;
                 if (user?.isEmailVerified ?? false) {
+                  // user's email is verified
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     notesRoute,
                     (route) => false,
                   );
                 } else {
+                  // user's email is NOT verified
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     verifyEmailRoute,
                     (route) => false,
                   );
                 }
-              } on UserNotLoggedAuthException {
-                await showErrorDialog(context, 'User Not Found');
+              } on UserNotFoundAuthException {
+                await showErrorDialog(
+                  context,
+                  'User not found',
+                );
               } on WrongPasswordAuthException {
-                await showErrorDialog(context, 'Wrong Credentials');
+                await showErrorDialog(
+                  context,
+                  'Wrong credentials',
+                );
               } on GenericAuthException {
-                await showErrorDialog(context, 'Authentication error');
+                await showErrorDialog(
+                  context,
+                  'Authentication error',
+                );
               }
             },
             child: const Text('Login'),

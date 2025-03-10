@@ -14,10 +14,10 @@ class NotesService {
   NotesService._sharedInstance();
   factory NotesService() => _shared;
 
-  Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
-
   final _notesStreamController =
       StreamController<List<DatabaseNote>>.broadcast();
+
+  Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
 
   Future<DatabaseUser> getOrCreateUser({required String email}) async {
     try {
@@ -44,8 +44,10 @@ class NotesService {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
+    // make sure note exists
     await getNote(id: note.id);
 
+    // update DB
     final updatesCount = await db.update(noteTable, {
       textColumn: text,
       isSyncedWithCloudColumn: 0,
@@ -109,7 +111,7 @@ class NotesService {
       whereArgs: [id],
     );
     if (deletedCount == 0) {
-      throw CouldNotDeleteUser();
+      throw CouldNotDeleteNote();
     } else {
       _notes.removeWhere((note) => note.id == id);
       _notesStreamController.add(_notes);
@@ -120,13 +122,14 @@ class NotesService {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
+    // make sure owner exists in the database with the correct id
     final dbUser = await getUser(email: owner.email);
     if (dbUser != owner) {
       throw CouldNotFindUser();
     }
 
     const text = '';
-    // Create Note
+    // create the note
     final noteId = await db.insert(noteTable, {
       userIdColumn: owner.id,
       textColumn: text,
@@ -236,10 +239,9 @@ class NotesService {
       final dbPath = join(docsPath.path, dbName);
       final db = await openDatabase(dbPath);
       _db = db;
-
-      // Create the user table
+      // create the user table
       await db.execute(createUserTable);
-      // Create note table
+      // create note table
       await db.execute(createNoteTable);
       await _cacheNotes();
     } on MissingPlatformDirectoryException {
@@ -268,7 +270,7 @@ class DatabaseUser {
   bool operator ==(covariant DatabaseUser other) => id == other.id;
 
   @override
-  int get hashCode => super.hashCode;
+  int get hashCode => id.hashCode;
 }
 
 class DatabaseNote {
@@ -293,13 +295,13 @@ class DatabaseNote {
 
   @override
   String toString() =>
-      'Note, ID = $id, userId = $userId, text = $text, isSyncedWithCloud = $isSyncedWithCloud';
+      'Note, ID = $id, userId = $userId, isSyncedWithCloud = $isSyncedWithCloud, text = $text';
 
   @override
   bool operator ==(covariant DatabaseNote other) => id == other.id;
 
   @override
-  int get hashCode => super.hashCode;
+  int get hashCode => id.hashCode;
 }
 
 const dbName = 'notes.db';
